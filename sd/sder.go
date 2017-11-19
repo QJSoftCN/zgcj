@@ -2,7 +2,7 @@ package sd
 
 import (
 	"time"
-	"../tx"
+	"github.com/qjsoftcn/gutils"
 	"fmt"
 )
 
@@ -35,11 +35,53 @@ type DayLine struct {
 	HighestPrice float64
 }
 
-//获取日线数据，通过腾讯的接口
-func GetDayLines() ([]DayLine, error) {
+func (this DayLine) GetQuoteChange() string {
+	return gutils.FormatFloat(this.QuoteChange*100, "%2") + "%"
+}
 
-	dlsfile,err:=tx.ReadDailyLines()
+func(this DayLine)GetMaxPriceChange()float64{
+	return this.HighestPrice-this.LowestPrice
+}
 
-	fmt.Println(dlsfile,err)
-	return nil, nil
+func (this DayLine) String() string {
+
+	return fmt.Sprintln(gutils.FormatToSecond(this.UpdateTime),
+		this.Code, this.Name, gutils.FormatFloat(this.LatestPrice, "2"),
+		this.GetQuoteChange(),
+		gutils.FormatFloat(this.AmountChange, "2"),
+		gutils.FormatFloat(this.Buy1Price, "2"),
+		gutils.FormatFloat(this.Sell1Price, "2"),
+		this.Volume, gutils.FormatFloat(this.TurnOver, "2"),
+		gutils.FormatFloat(this.NowOpenPrice, "2"),
+		gutils.FormatFloat(this.LastClosedPrice, "2"),
+		gutils.FormatFloat(this.HighestPrice, "2"),
+		gutils.FormatFloat(this.LowestPrice, "2"))
+}
+
+type DayLines struct {
+	dls    []DayLine
+	dlsMap map[string]*DayLine
+}
+
+func NewDayLines(ds []DayLine) *DayLines {
+	dls := new(DayLines)
+	dls.dls = ds
+
+	dlsMap := make(map[string]*DayLine, len(ds))
+	for _, d := range ds {
+		dlsMap[d.Code] = &d
+		dlsMap[d.Name] = &d
+	}
+
+	dls.dlsMap = dlsMap
+	return dls
+}
+
+func (this *DayLines) Toss(){
+	//价格变化
+	for _,d:=range this.dls{
+		pc:=d.GetMaxPriceChange()
+		fmt.Println(pc)
+	}
+
 }
