@@ -4,6 +4,7 @@ import (
 	"time"
 	"github.com/qjsoftcn/gutils"
 	"fmt"
+	"sort"
 )
 
 //股票日线行情
@@ -39,8 +40,9 @@ func (this DayLine) GetQuoteChange() string {
 	return gutils.FormatFloat(this.QuoteChange*100, "%2") + "%"
 }
 
-func(this DayLine)GetMaxPriceChange()float64{
-	return this.HighestPrice-this.LowestPrice
+//获取振幅
+func (this DayLine) GetAmplitude() float64 {
+	return (this.HighestPrice - this.LowestPrice) / this.LastClosedPrice
 }
 
 func (this DayLine) String() string {
@@ -77,11 +79,52 @@ func NewDayLines(ds []DayLine) *DayLines {
 	return dls
 }
 
-func (this *DayLines) Toss(){
+type TossIndex struct {
+	Day *DayLine
+	//振幅排名
+	NoByAmp int
+}
+
+type TossIndexs struct {
+	tosses []TossIndex
+	by     func(t1, t2 *TossIndex) bool
+}
+
+func (this *TossIndexs) GetTosses() []TossIndex {
+	return this.tosses
+}
+
+func (this *TossIndexs) Len() int {
+	return len(this.tosses)
+}
+
+func (this *TossIndexs) Swap(i, j int) {
+	this.tosses[i], this.tosses[j] = this.tosses[j], this.tosses[i]
+}
+
+func (this *TossIndexs) Less(i, j int) bool {
+	return this.by(&this.tosses[i], &this.tosses[j])
+}
+
+func (this *DayLines) Toss() *TossIndexs {
 	//价格变化
-	for _,d:=range this.dls{
-		pc:=d.GetMaxPriceChange()
-		fmt.Println(pc)
+	ts := new(TossIndexs)
+
+	tis := make([]TossIndex, 0)
+	for i:=0;i<len(this.dls);i++ {
+		ti := new(TossIndex)
+		ti.Day = &this.dls[i]
+		tis = append(tis, *ti)
 	}
 
+	ts.tosses = tis
+	//by amplitude
+	ts.by = func(t1, t2 *TossIndex) bool {
+		zf1 := t1.Day.GetAmplitude()
+		zf2 := t2.Day.GetAmplitude()
+		return zf1 > zf2
+	}
+
+	sort.Sort(ts)
+	return ts
 }

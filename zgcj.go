@@ -4,18 +4,24 @@ import (
 	"../zgcj/sd"
 	"log"
 	"fmt"
+	"github.com/qjsoftcn/gutils"
 )
 
 func main() {
 
-	//fmt.Println(runtime.NumCPU(),runtime.GOMAXPROCS(1))
-	dls,err:=sd.GetDayLines()
-	if err!=nil{
+	dls, err := sd.GetDayLines()
+	if err != nil {
 		log.Println(err)
 	}
-	//fmt.Println(runtime.NumCPU(),runtime.GOMAXPROCS(-1))
-	for index,dl:=range dls{
-		fmt.Println(index,dl)
+
+	ds := sd.NewDayLines(dls)
+	ts := ds.Toss()
+
+	for index, t := range ts.GetTosses() {
+		if index > 20 {
+			break
+		}
+		fmt.Println(index, t.Day.Name, gutils.FormatFloat(t.Day.LatestPrice, "2"), gutils.FormatFloat(t.Day.GetAmplitude()*100, "%2"))
 	}
 
 }

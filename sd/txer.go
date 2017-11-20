@@ -111,7 +111,7 @@ func ReadXlsx(xlsxFilePath string) ([]DayLine, error) {
 	ut, _ := time.Parse(dup, "yyyy-MM-dd HH:mm:ss")
 
 	dls := make([]DayLine, 0)
-	for ri := 1; ri < sheet.MaxRow; ri++ {
+	for ri := 2; ri < sheet.MaxRow; ri++ {
 		row := sheet.Rows[ri]
 
 		dl := new(DayLine)
