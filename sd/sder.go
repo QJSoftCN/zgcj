@@ -36,6 +36,7 @@ type DayLine struct {
 	HighestPrice float64
 }
 
+//获取涨跌幅
 func (this DayLine) GetQuoteChange() string {
 	return gutils.FormatFloat(this.QuoteChange*100, "%2") + "%"
 }
@@ -43,6 +44,23 @@ func (this DayLine) GetQuoteChange() string {
 //获取振幅
 func (this DayLine) GetAmplitude() float64 {
 	return (this.HighestPrice - this.LowestPrice) / this.LastClosedPrice
+}
+
+//获取平均成交价格
+func (this DayLine) GetAvgPrice() float64 {
+	if this.Volume == 0 {
+		return 0
+	}
+	return this.TurnOver / (float64(this.Volume) * 100)
+}
+
+//(现价-均价)/均价
+func (this DayLine) GetNADeviation() float64 {
+	ap := this.GetAvgPrice()
+	if ap == 0 {
+		return 0
+	}
+	return (this.LatestPrice - ap) / ap
 }
 
 func (this DayLine) String() string {
@@ -63,6 +81,7 @@ func (this DayLine) String() string {
 type DayLines struct {
 	dls    []DayLine
 	dlsMap map[string]*DayLine
+	by     By
 }
 
 func NewDayLines(ds []DayLine) *DayLines {
@@ -79,52 +98,63 @@ func NewDayLines(ds []DayLine) *DayLines {
 	return dls
 }
 
-type TossIndex struct {
-	Day *DayLine
-	//振幅排名
-	NoByAmp int
+type By func(t1, t2 *DayLine) bool
+
+func (this *DayLines) GetDLS() []DayLine {
+	return this.dls
 }
 
-type TossIndexs struct {
-	tosses []TossIndex
-	by     func(t1, t2 *TossIndex) bool
+func (this *DayLines) Len() int {
+	return len(this.dls)
 }
 
-func (this *TossIndexs) GetTosses() []TossIndex {
-	return this.tosses
+func (this *DayLines) Swap(i, j int) {
+	this.dls[i], this.dls[j] = this.dls[j], this.dls[i]
 }
 
-func (this *TossIndexs) Len() int {
-	return len(this.tosses)
+func (this *DayLines) Less(i, j int) bool {
+	return this.by(&this.dls[i], &this.dls[j])
 }
 
-func (this *TossIndexs) Swap(i, j int) {
-	this.tosses[i], this.tosses[j] = this.tosses[j], this.tosses[i]
-}
-
-func (this *TossIndexs) Less(i, j int) bool {
-	return this.by(&this.tosses[i], &this.tosses[j])
-}
-
-func (this *DayLines) Toss() *TossIndexs {
-	//价格变化
-	ts := new(TossIndexs)
-
-	tis := make([]TossIndex, 0)
-	for i:=0;i<len(this.dls);i++ {
-		ti := new(TossIndex)
-		ti.Day = &this.dls[i]
-		tis = append(tis, *ti)
+func GetByAmp(asc bool) By {
+	return func(d1, d2 *DayLine) bool {
+		zf1 := d1.GetAmplitude()
+		zf2 := d2.GetAmplitude()
+		if asc {
+			return zf1 < zf2
+		} else {
+			return zf1 > zf2
+		}
 	}
+}
 
-	ts.tosses = tis
-	//by amplitude
-	ts.by = func(t1, t2 *TossIndex) bool {
-		zf1 := t1.Day.GetAmplitude()
-		zf2 := t2.Day.GetAmplitude()
-		return zf1 > zf2
+func GetByNad(asc bool) By {
+	return func(d1, d2 *DayLine) bool {
+		n1 := d1.GetNADeviation()
+		n2 := d2.GetNADeviation()
+		if asc {
+			return n1 < n2
+		} else {
+			return n1 > n2
+		}
 	}
+}
 
-	sort.Sort(ts)
-	return ts
+func GetByVolume(asc bool) By {
+	return func(d1, d2 *DayLine) bool {
+		n1 := d1.Volume
+		n2 := d2.Volume
+		if asc {
+			return n1 < n2
+		} else {
+			return n1 > n2
+		}
+	}
+}
+
+func (this *DayLines) Sorts(bys ...By) {
+	for _, by := range bys {
+		this.by = by
+		sort.Sort(this)
+	}
 }
