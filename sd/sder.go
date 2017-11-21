@@ -98,10 +98,8 @@ func NewDayLines(ds []DayLine) *DayLines {
 	return dls
 }
 
-type By func(t1, t2 *DayLine) bool
-
-func (this *DayLines) GetDLS() []DayLine {
-	return this.dls
+func (this *DayLines) Get(fromIndex, endIndex int) []DayLine {
+	return this.dls[fromIndex:endIndex]
 }
 
 func (this *DayLines) Len() int {
@@ -114,42 +112,6 @@ func (this *DayLines) Swap(i, j int) {
 
 func (this *DayLines) Less(i, j int) bool {
 	return this.by(&this.dls[i], &this.dls[j])
-}
-
-func GetByAmp(asc bool) By {
-	return func(d1, d2 *DayLine) bool {
-		zf1 := d1.GetAmplitude()
-		zf2 := d2.GetAmplitude()
-		if asc {
-			return zf1 < zf2
-		} else {
-			return zf1 > zf2
-		}
-	}
-}
-
-func GetByNad(asc bool) By {
-	return func(d1, d2 *DayLine) bool {
-		n1 := d1.GetNADeviation()
-		n2 := d2.GetNADeviation()
-		if asc {
-			return n1 < n2
-		} else {
-			return n1 > n2
-		}
-	}
-}
-
-func GetByVolume(asc bool) By {
-	return func(d1, d2 *DayLine) bool {
-		n1 := d1.Volume
-		n2 := d2.Volume
-		if asc {
-			return n1 < n2
-		} else {
-			return n1 > n2
-		}
-	}
 }
 
 func (this *DayLines) Sorts(bys ...By) {
