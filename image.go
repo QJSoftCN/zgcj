@@ -36,6 +36,7 @@ func main() {
 		fmt.Println("create index error->%q: %s\n", err, sqlStmt)
 		return
 	}
+
 	//写入10M条记录
 	start := time.Now().Unix()
 	tx, err := db.Begin()
