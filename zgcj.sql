@@ -1,1 +1,4 @@
-create TABLE rxhh_zgcj_
+create TABLE zgcj_stock(
+
+
+)

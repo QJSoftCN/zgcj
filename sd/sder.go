@@ -54,6 +54,9 @@ func (this DayLine) GetAvgPrice() float64 {
 	return this.TurnOver / (float64(this.Volume) * 100)
 }
 
+
+
+
 //(现价-均价)/均价
 func (this DayLine) GetNADeviation() float64 {
 	ap := this.GetAvgPrice()
