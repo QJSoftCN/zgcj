@@ -4,7 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	_"github.com/mattn/go-sqlite3"
 )
+
+type BCCode struct {
+	B_Code string
+	C_Code string
+	CodeType int
+	IsNew int
+}
 
 func main() {
 

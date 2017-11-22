@@ -11,11 +11,15 @@ import (
 	"github.com/qjsoftcn/gutils"
 	"github.com/tealeg/xlsx"
 	"strconv"
+	"strings"
 )
 
 const (
-	DailyLine_URL = "http://stock.gtimg.cn/data/get_hs_xls.php?id=rankash&type=1&metric=chr"
+	DailyLine_URL = "http://stock.gtimg.cn/data/get_hs_xls.php?id=ranka${mk}&type=1&metric=chr"
 	DLS_DIR       = "dls"
+	Market_SH     = "sh"
+	Market_SZ     = "sz"
+	Var_MK        = "${mk}"
 )
 
 func initDLSDir() {
@@ -29,23 +33,24 @@ func init() {
 	log.Println("Init DLS Dir")
 }
 
-func dlsFname(timestamp, ext string) string {
-	return "tx_dls_" + timestamp + "." + ext
+func dlsFname(market, timestamp, ext string) string {
+	return market + "_dls_" + timestamp + "." + ext
 }
 
 func dlsFpath(fname string) string {
 	return filepath.Join(DLS_DIR, fname)
 }
 
-func ReadDailyLines() (string, error) {
-	res, err := http.Get(DailyLine_URL)
+func ReadDay(market string) (string, error) {
+	url := strings.Replace(DailyLine_URL, Var_MK, market, 1)
+	res, err := http.Get(url)
 	if err != nil {
 		log.Fatal("ReadDailyLines err:", err)
 		return "", err
 	}
 
 	ts := gutils.FormatToSecondForFileName(time.Now())
-	xlsFname := dlsFname(ts, "xls")
+	xlsFname := dlsFname(market, ts, "xls")
 
 	fpath := dlsFpath(xlsFname)
 
@@ -66,7 +71,7 @@ func ReadDailyLines() (string, error) {
 
 	if bnum > 0 {
 		//cast to xlsx
-		xlsxFname := dlsFname(ts, "xlsx")
+		xlsxFname := dlsFname(market, ts, "xlsx")
 		xfpath := dlsFpath(xlsxFname)
 		absFpath, _ := filepath.Abs(fpath)
 		absxFpath, _ := filepath.Abs(xfpath)
@@ -84,15 +89,34 @@ func ReadDailyLines() (string, error) {
 
 }
 
-func GetDayLines() ([]DayLine, error) {
-	dlsfile, err := ReadDailyLines()
-	//读取日线数据
+func ReadMarket(market string) ([]DayLine, error) {
+
+	dlsfile, err := ReadDay(market)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
 	return ReadXlsx(dlsfile)
+}
+
+func GetDayLines() ([]DayLine, error) {
+	shDls, err := ReadMarket(Market_SH)
+	if err != nil {
+		return nil, err
+	}
+
+	szDls, err := ReadMarket(Market_SZ)
+	if err != nil {
+		return nil, err
+	}
+
+	dls := make([]DayLine, 0)
+
+	dls = append(dls, shDls...)
+	dls = append(dls, szDls...)
+
+	return dls, nil
 }
 
 func ReadXlsx(xlsxFilePath string) ([]DayLine, error) {

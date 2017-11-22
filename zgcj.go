@@ -23,7 +23,8 @@ func main() {
 	for index, t := range ds.Get(0,10) {
 
 		fmt.Println(index, t.Name, gutils.FormatFloat(t.LatestPrice, "2"),
-			gutils.FormatFloat(t.GetAmplitude()*100, "%2"),
+			gutils.FormatFloat(t.GetAvgPrice(), "2"),
+			gutils.FormatFloat(t.GetAmplitude()*100, "%2")+"%",
 			gutils.FormatFloat(t.GetNADeviation()*100, "%2")+"%")
 	}
 
