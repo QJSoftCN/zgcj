@@ -22,6 +22,7 @@ func main() {
 	}
 
 	username, err := redis.String(c.Do("GET", "mykey"))
+
 	if err != nil {
 		fmt.Println("redis get failed:", err)
 	} else {
