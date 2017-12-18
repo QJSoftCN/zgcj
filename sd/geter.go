@@ -20,16 +20,20 @@ const (
 	Stock_List  = "http://quote.eastmoney.com/stocklist.html"
 	Real_HQ_Url = "http://qt.gtimg.cn/q=${code}"
 
-	Root_Dir  = "zgcj"
-	DLS_DIR   = "dls"
-	HF_EXT    = "csv"
-	Market_SH = "sh"
-	Market_SZ = "sz"
-	Var_Code  = "${code}"
-	Var_Start = "${start}"
-	Var_End   = "${end}"
-	Code_Regx_Exp="(6|0|3)[\\d]{5}"
+	Root_Dir      = "zgcj"
+	DLS_DIR       = "dls"
+	HF_EXT        = "csv"
+	Market_SH     = "sh"
+	Market_SZ     = "sz"
+	Var_Code      = "${code}"
+	Var_Start     = "${start}"
+	Var_End       = "${end}"
+	Code_Regx_Exp = "(6|0|3)[\\d]{5}"
+
+	ENC_CODE = "gbk"
 )
+
+var enc = mahonia.NewDecoder(ENC_CODE)
 
 //获取所有股票的代码
 func GetStockCodes() ([]string, error) {
@@ -42,9 +46,7 @@ func GetStockCodes() ([]string, error) {
 	codes := make([]string, 0)
 	doc.Find("div[id='quotesearch'] ul li a").Each(func(i int, cs *goquery.Selection) {
 		str := cs.Text()
-		enc := mahonia.NewDecoder("gbk")
 		str = enc.ConvertString(str)
-
 		code := reg.FindString(str)
 		if code != "" {
 			codes = append(codes, code)
@@ -152,11 +154,11 @@ func BackupDays(days int) bool {
 
 func makeRealUrl(codes []string) string {
 	//code=getMarketCodeForTx(code)+code
-
-	for i, code := range codes {
-		codes[i] = getMarketCodeForTx(code) + code
+	str:=""
+	for _, code := range codes {
+		str+=getMarketCodeForTx(code) + code+","
 	}
-	str := fmt.Sprint(codes)
+	str=str[:len(str)-1]
 	url := strings.Replace(Real_HQ_Url, Var_Code, str, 1)
 	return url
 }
@@ -169,7 +171,13 @@ func GetReal(code []string) (string, error) {
 		return "", err
 	}
 
-	return "",nil
+	str := doc.Text()
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+	str = enc.ConvertString(str)
+	return str, nil
 }
 
 func init() {
