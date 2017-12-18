@@ -28,6 +28,7 @@ const (
 	Var_Code  = "${code}"
 	Var_Start = "${start}"
 	Var_End   = "${end}"
+	Code_Regx_Exp="(6|0|3)[\\d]{5}"
 )
 
 //获取所有股票的代码
@@ -37,7 +38,7 @@ func GetStockCodes() ([]string, error) {
 		return nil, err
 	}
 
-	reg := regexp.MustCompile("(6|0|3)[\\d]{5}")
+	reg := regexp.MustCompile(Code_Regx_Exp)
 	codes := make([]string, 0)
 	doc.Find("div[id='quotesearch'] ul li a").Each(func(i int, cs *goquery.Selection) {
 		str := cs.Text()
@@ -76,9 +77,9 @@ func getMarketCodeForTx(code string) string {
 
 func makeUrl(code, sd, ed string) string {
 
-	url := strings.Replace(His_Url, "${code}", code, 1)
-	url = strings.Replace(url, "${start}", sd, 1)
-	url = strings.Replace(url, "${end}", ed, 1)
+	url := strings.Replace(His_Url, Var_Code, code, 1)
+	url = strings.Replace(url, Var_Start, sd, 1)
+	url = strings.Replace(url, Var_End, ed, 1)
 	return url
 }
 
@@ -164,8 +165,11 @@ func GetReal(code []string) (string, error) {
 	url := makeRealUrl(code)
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
+		return "", err
 	}
+
+	return "",nil
 }
 
 func init() {
