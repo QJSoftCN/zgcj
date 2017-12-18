@@ -103,7 +103,8 @@ func backupCode(code, sd, ed string) bool {
 
 func BackupDays(days int) bool {
 	now := time.Now()
-	start := now.Add(-40 * 24 * time.Hour)
+	dur := time.Duration(-days) * time.Duration(24*time.Hour)
+	start := now.Add(dur)
 
 	codes, err := GetStockCodes()
 	if err != nil {
@@ -133,6 +134,6 @@ func BackupDays(days int) bool {
 	}
 }
 
-func init(){
-	gutils.Dir(filepath.Join(Root_Dir,DLS_DIR))
+func init() {
+	gutils.Dir(filepath.Join(Root_Dir, DLS_DIR))
 }

@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	sd.BackupDays(40)
+	sd.BackupDays(100)
 }
