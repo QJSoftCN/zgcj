@@ -7,6 +7,7 @@ import (
 	"sort"
 )
 
+
 //股票日线行情
 type DayLine struct {
 	UpdateTime time.Time
