@@ -16,11 +16,18 @@ import (
 )
 
 const (
-	His_Url    = "http://quotes.money.163.com/service/chddata.html?code=${code}&start=${start}&end=${end}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP"
-	Stock_List = "http://quote.eastmoney.com/stocklist.html"
+	His_Url     = "http://quotes.money.163.com/service/chddata.html?code=${code}&start=${start}&end=${end}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP"
+	Stock_List  = "http://quote.eastmoney.com/stocklist.html"
+	Real_HQ_Url = "http://qt.gtimg.cn/q=${code}"
 
-	Root_Dir = "zgcj"
-	HF_EXT   = "csv"
+	Root_Dir  = "zgcj"
+	DLS_DIR   = "dls"
+	HF_EXT    = "csv"
+	Market_SH = "sh"
+	Market_SZ = "sz"
+	Var_Code  = "${code}"
+	Var_Start = "${start}"
+	Var_End   = "${end}"
 )
 
 //获取所有股票的代码
@@ -42,17 +49,26 @@ func GetStockCodes() ([]string, error) {
 			codes = append(codes, code)
 		}
 	})
-
 	return codes, nil
-
 }
 
-func getMarketCode(code string) string {
+func getMarketCodeForWy(code string) string {
 	switch code[0] {
 	case '0', '3':
 		return "1"
 	case '6':
 		return "0"
+	default:
+		return "-1"
+	}
+}
+
+func getMarketCodeForTx(code string) string {
+	switch code[0] {
+	case '0', '3':
+		return Market_SZ
+	case '6':
+		return Market_SH
 	default:
 		return "-1"
 	}
@@ -71,7 +87,7 @@ func DirHisPath(code string) string {
 }
 
 func backupCode(code, sd, ed string) bool {
-	mc := getMarketCode(code)
+	mc := getMarketCodeForWy(code)
 	if mc == "-1" {
 		return false
 	}
@@ -133,6 +149,25 @@ func BackupDays(days int) bool {
 	}
 }
 
-func init(){
-	gutils.Dir(filepath.Join(Root_Dir,DLS_DIR))
+func makeRealUrl(codes []string) string {
+	//code=getMarketCodeForTx(code)+code
+
+	for i, code := range codes {
+		codes[i] = getMarketCodeForTx(code) + code
+	}
+	str := fmt.Sprint(codes)
+	url := strings.Replace(Real_HQ_Url, Var_Code, str, 1)
+	return url
+}
+
+func GetReal(code []string) (string, error) {
+	url := makeRealUrl(code)
+	doc, err := goquery.NewDocument(url)
+	if err != nil {
+		return nil, err
+	}
+}
+
+func init() {
+	gutils.Dir(filepath.Join(Root_Dir, DLS_DIR))
 }
