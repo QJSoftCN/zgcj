@@ -153,12 +153,14 @@ func BackupDays(days int) bool {
 }
 
 func makeRealUrl(codes []string) string {
-	//code=getMarketCodeForTx(code)+code
-	str:=""
+	str := ""
 	for _, code := range codes {
-		str+=getMarketCodeForTx(code) + code+","
+		if len(code) == 0 {
+			continue
+		}
+		str += getMarketCodeForTx(code) + code + ","
 	}
-	str=str[:len(str)-1]
+	str = str[:len(str)-1]
 	url := strings.Replace(Real_HQ_Url, Var_Code, str, 1)
 	return url
 }
