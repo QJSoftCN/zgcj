@@ -3,15 +3,19 @@ package sd
 import (
 	"time"
 	"github.com/qjsoftcn/gutils"
-	"fmt"
 	"sort"
 )
 
-//股票日线行情
-type DayLine struct {
+type Stock struct {
 	Code       string
 	Name       string
-	Day        time.Time
+	Now DayLine
+	Before DayLines
+}
+
+//股票日线行情
+type DayLine struct {
+	UTIME        time.Time//更新时间
 	TCLOSE     float64 //收盘价
 	HIGH       float64 //最高价
 	LOW        float64 //最低价
@@ -74,19 +78,7 @@ type DayLines struct {
 	by     By
 }
 
-func NewDayLines(ds []DayLine) *DayLines {
-	dls := new(DayLines)
-	dls.dls = ds
 
-	dlsMap := make(map[string]*DayLine, len(ds))
-	for _, d := range ds {
-		dlsMap[d.Code] = &d
-		dlsMap[d.Name] = &d
-	}
-
-	dls.dlsMap = dlsMap
-	return dls
-}
 
 func (this *DayLines) Get(fromIndex, endIndex int) []DayLine {
 	return this.dls[fromIndex:endIndex]
