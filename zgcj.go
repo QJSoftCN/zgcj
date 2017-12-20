@@ -9,10 +9,12 @@ func main() {
 
 	codes, _ := sd.GetStockCodes()
 	i := 0
+	step:=20
 	for {
-		str, _ := sd.GetReal(codes[i:i+5])
+		e:=i+step
+		str, _ := sd.GetReal(codes[i:e])
 		fmt.Println(str)
-		i = i + 5
+		i = e
 		if i >= len(codes) {
 			break
 		}

@@ -4,30 +4,103 @@ import (
 	"time"
 	"github.com/qjsoftcn/gutils"
 	"sort"
+	"fmt"
 )
 
+type Stocks struct {
+	stocks   []*Stock
+	stockMap map[string]*Stock
+}
+
+func (this *Stocks) getCodes(s, e int) []string {
+	codes := make([]string, e-s+1)
+	ss := this.stocks[s:e]
+	for index, code := range ss {
+		codes[index] = code.Code
+	}
+	return codes
+
+}
+
+func (this *Stocks) UpdateReal() int {
+
+	i := 0
+	size := len(this.stocks)
+	step:=20
+	for {
+		e:=i+step
+		codes:=this.getCodes(i,e)
+		str, _ := GetReal(codes)
+
+		fmt.Println(str)
+		i = e
+		if i >= size {
+			break
+		}
+	}
+	return 0
+}
+
+func (this *Stocks) UpdateHistory() int {
+
+	return 0
+}
+
+func NewStocks() (*Stocks, error) {
+	//首先读取所有Code
+	codes, err := GetStockCodes()
+	if err != nil {
+		return nil, err
+	}
+
+	l := len(codes)
+
+	stocks := new(Stocks)
+	stocks.stocks = make([]*Stock, l)
+	stocks.stockMap = make(map[string]*Stock, l)
+
+	for index, code := range codes {
+		stock := NewStock(code)
+		stocks.stocks[index] = stock
+		stocks.stockMap[code] = stock
+	}
+
+	//更新实时行情
+	stocks.UpdateReal()
+	//更新历史行情
+	stocks.UpdateHistory()
+
+	return stocks, nil
+}
+
+func NewStock(code string) *Stock {
+	s := new(Stock)
+	s.Code = code
+	return s
+}
+
 type Stock struct {
-	Code       string
-	Name       string
-	Now DayLine
+	Code   string
+	Name   string
+	Now    DayLine
 	Before DayLines
 }
 
 //股票日线行情
 type DayLine struct {
-	UTIME        time.Time//更新时间
-	TCLOSE     float64 //收盘价
-	HIGH       float64 //最高价
-	LOW        float64 //最低价
-	TOPEN      float64 //开盘价
-	LCLOSE     float64 //前收盘
-	CHG        float64 //涨跌额
-	PCHG       float64 //涨跌幅
-	TURNOVER   float64 //换手率
-	VOTURNOVER float64 //成交量
-	VATURNOVER float64 //成交金额
-	TCAP       float64 //总市值
-	MCAP       float64 //流通市值
+	UTIME      time.Time //更新时间
+	TCLOSE     float64   //收盘价
+	HIGH       float64   //最高价
+	LOW        float64   //最低价
+	TOPEN      float64   //开盘价
+	LCLOSE     float64   //前收盘
+	CHG        float64   //涨跌额
+	PCHG       float64   //涨跌幅
+	TURNOVER   float64   //换手率
+	VOTURNOVER float64   //成交量
+	VATURNOVER float64   //成交金额
+	TCAP       float64   //总市值
+	MCAP       float64   //流通市值
 }
 
 //获取涨跌幅
@@ -77,8 +150,6 @@ type DayLines struct {
 	dlsMap map[string]*DayLine
 	by     By
 }
-
-
 
 func (this *DayLines) Get(fromIndex, endIndex int) []DayLine {
 	return this.dls[fromIndex:endIndex]

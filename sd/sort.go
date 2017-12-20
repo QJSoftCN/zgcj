@@ -28,8 +28,8 @@ func ByNad(asc bool) By {
 
 func ByVolume(asc bool) By {
 	return func(d1, d2 *DayLine) bool {
-		n1 := d1.Volume
-		n2 := d2.Volume
+		n1 := d1.VOTURNOVER
+		n2 := d2.VOTURNOVER
 		if asc {
 			return n1 < n2
 		} else {
