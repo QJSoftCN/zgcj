@@ -16,8 +16,16 @@ type Stocks struct {
 	stockMap map[string]*Stock
 }
 
+func (this *Stocks) GetStocks() []*Stock {
+	return this.stocks
+}
+
 func (this *Stocks) getCodes(s, e int) []string {
 	codes := make([]string, e-s+1)
+	tl := len(this.stocks)
+	if e > tl {
+		e = tl
+	}
 	ss := this.stocks[s:e]
 	for index, code := range ss {
 		codes[index] = code.Code
@@ -26,7 +34,7 @@ func (this *Stocks) getCodes(s, e int) []string {
 
 }
 
-func NewNowHQ(hqs []string) *DayLine {
+func newNDay(hqs []string) *DayLine {
 	now := new(DayLine)
 	now.CHG, _ = strconv.ParseFloat(hqs[30], 64)
 	now.HIGH, _ = strconv.ParseFloat(hqs[40], 64)
@@ -38,22 +46,31 @@ func NewNowHQ(hqs []string) *DayLine {
 
 	now.TOPEN, _ = strconv.ParseFloat(hqs[4], 64)
 	now.TURNOVER, _ = strconv.ParseFloat(hqs[37], 64)
-	//now.UTIME, _ = strconv.ParseFloat(hqs[31], 64)
 	now.TCLOSE, _ = strconv.ParseFloat(hqs[2], 64)
 	now.VATURNOVER, _ = strconv.ParseFloat(hqs[36], 64)
-	now.VOTURNOVER, _ = strconv.ParseFloat(hqs[31], 64)
-
+	now.VOTURNOVER, _ = strconv.ParseFloat(hqs[35], 64)
+	now.UTIME, _ = gutils.Parse(hqs[29][:8], "yyyyMMdd")
 	return now
 }
 
 func (this *Stock) UpdateNow(hqs []string) {
-	this.Code = hqs[2]
-	this.Name = hqs[1]
-
-	this.Now = NewNowHQ(hqs)
+	this.Name = hqs[0]
+	this.Now = NewNowLine(hqs)
 }
 
-func (this *Stocks) UpdateReal() int {
+func NewNowLine(hqs []string) *NowLine {
+	nl := new(NowLine)
+	nl.NDAY = newNDay(hqs)
+	nl.HLIMIT, _ = strconv.ParseFloat(hqs[46], 64)
+	nl.LLIMIT, _ = strconv.ParseFloat(hqs[47], 64)
+	nl.PEV, _ = strconv.ParseFloat(hqs[38], 64)
+	nl.AMP, _ = strconv.ParseFloat(hqs[42], 64)
+	nl.PBV, _ = strconv.ParseFloat(hqs[45], 64)
+
+	return nl
+}
+
+func (this *Stocks) UpdateNow() int {
 	suc := 0
 	i := 0
 	size := len(this.stocks)
@@ -72,7 +89,7 @@ func (this *Stocks) UpdateReal() int {
 			i += C_Step
 		}
 	}
-	return 0
+	return suc
 }
 
 func (this *Stocks) UpdateHistory() int {
@@ -100,7 +117,7 @@ func NewStocks() (*Stocks, error) {
 	}
 
 	//更新实时行情
-	stocks.UpdateReal()
+	stocks.UpdateNow()
 	//更新历史行情
 	stocks.UpdateHistory()
 
@@ -116,8 +133,17 @@ func NewStock(code string) *Stock {
 type Stock struct {
 	Code   string
 	Name   string
-	Now    *DayLine
+	Now    *NowLine
 	Before *DayLines
+}
+
+type NowLine struct {
+	NDAY   *DayLine
+	HLIMIT float64 //涨停价
+	LLIMIT float64 //跌停价
+	PEV    float64 //市盈率
+	PBV    float64 //市净率
+	AMP    float64 //振幅
 }
 
 //股票日线行情

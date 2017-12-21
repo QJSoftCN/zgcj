@@ -187,13 +187,13 @@ func GetReal(code []string) (string, error) {
 	url := makeRealUrl(code)
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("GetReal 1 ",err)
 		return "", err
 	}
 
 	str := doc.Text()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("GetReal 2",err)
 		return "", err
 	}
 	str = enc.ConvertString(str)
