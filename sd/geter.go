@@ -31,6 +31,7 @@ const (
 	Code_Regx_Exp = "(6|0|3)[\\d]{5}"
 
 	ENC_CODE = "gbk"
+	R_HQ_SEP = ";"
 )
 
 var enc = mahonia.NewDecoder(ENC_CODE)
@@ -163,6 +164,23 @@ func makeRealUrl(codes []string) string {
 	str = str[:len(str)-1]
 	url := strings.Replace(Real_HQ_Url, Var_Code, str, 1)
 	return url
+}
+
+func SplitRealStr(str string) map[string][]string {
+	rhqs := strings.Split(str, R_HQ_SEP)
+
+	s_map := make(map[string][]string)
+	for _, rhq := range rhqs {
+		f := strings.Index(rhq, "\"")
+		if f != -1 {
+			hq := strings.Split(rhq[f+1:len(rhq)-1], "~")
+			s_map[hq[2]] = hq[1:]
+		}else{
+			fmt.Println(rhq)
+		}
+	}
+
+	return s_map
 }
 
 func GetReal(code []string) (string, error) {

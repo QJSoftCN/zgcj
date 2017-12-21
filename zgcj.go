@@ -7,17 +7,12 @@ import (
 
 func main() {
 
-	codes, _ := sd.GetStockCodes()
-	i := 0
-	step:=20
-	for {
-		e:=i+step
-		str, _ := sd.GetReal(codes[i:e])
-		fmt.Println(str)
-		i = e
-		if i >= len(codes) {
-			break
-		}
+	codes:=make([]string,1)
+	codes[0]="603993"
+	str,_:=sd.GetReal(codes[:1])
+	m:=sd.SplitRealStr(str)
+	for index,val:=range m[codes[0]]{
+		fmt.Println(index,"=",val)
 	}
 
 }

@@ -4,7 +4,11 @@ import (
 	"time"
 	"github.com/qjsoftcn/gutils"
 	"sort"
-	"fmt"
+	"strconv"
+)
+
+const (
+	C_Step int = 60
 )
 
 type Stocks struct {
@@ -22,20 +26,50 @@ func (this *Stocks) getCodes(s, e int) []string {
 
 }
 
-func (this *Stocks) UpdateReal() int {
+func NewNowHQ(hqs []string) *DayLine {
+	now := new(DayLine)
+	now.CHG, _ = strconv.ParseFloat(hqs[30], 64)
+	now.HIGH, _ = strconv.ParseFloat(hqs[40], 64)
+	now.LCLOSE, _ = strconv.ParseFloat(hqs[3], 64)
+	now.LOW, _ = strconv.ParseFloat(hqs[41], 64)
+	now.MCAP, _ = strconv.ParseFloat(hqs[43], 64)
+	now.PCHG, _ = strconv.ParseFloat(hqs[31], 64)
+	now.TCAP, _ = strconv.ParseFloat(hqs[44], 64)
 
+	now.TOPEN, _ = strconv.ParseFloat(hqs[4], 64)
+	now.TURNOVER, _ = strconv.ParseFloat(hqs[37], 64)
+	//now.UTIME, _ = strconv.ParseFloat(hqs[31], 64)
+	now.TCLOSE, _ = strconv.ParseFloat(hqs[2], 64)
+	now.VATURNOVER, _ = strconv.ParseFloat(hqs[36], 64)
+	now.VOTURNOVER, _ = strconv.ParseFloat(hqs[31], 64)
+
+	return now
+}
+
+func (this *Stock) UpdateNow(hqs []string) {
+	this.Code = hqs[2]
+	this.Name = hqs[1]
+
+	this.Now = NewNowHQ(hqs)
+}
+
+func (this *Stocks) UpdateReal() int {
+	suc := 0
 	i := 0
 	size := len(this.stocks)
-	step:=20
 	for {
-		e:=i+step
-		codes:=this.getCodes(i,e)
+		codes := this.getCodes(i, i+C_Step)
 		str, _ := GetReal(codes)
-
-		fmt.Println(str)
-		i = e
-		if i >= size {
+		m := SplitRealStr(str)
+		suc += len(m)
+		for key, val := range m {
+			stk := this.stockMap[key]
+			stk.UpdateNow(val)
+		}
+		if i+C_Step >= size {
 			break
+		} else {
+			i += C_Step
 		}
 	}
 	return 0
@@ -82,8 +116,8 @@ func NewStock(code string) *Stock {
 type Stock struct {
 	Code   string
 	Name   string
-	Now    DayLine
-	Before DayLines
+	Now    *DayLine
+	Before *DayLines
 }
 
 //股票日线行情
