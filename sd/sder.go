@@ -5,6 +5,7 @@ import (
 	"github.com/qjsoftcn/gutils"
 	"sort"
 	"strconv"
+	"fmt"
 )
 
 const (
@@ -68,6 +69,10 @@ func NewNowLine(hqs []string) *NowLine {
 	nl.PBV, _ = strconv.ParseFloat(hqs[45], 64)
 
 	return nl
+}
+
+func (this Stock) String() string {
+	return fmt.Sprintln(this.Code, this.Name, this.Now, this.Before)
 }
 
 func (this *Stocks) UpdateNow() int {
@@ -146,6 +151,15 @@ type NowLine struct {
 	AMP    float64 //振幅
 }
 
+func (this NowLine) String() string {
+	return fmt.Sprintln(this.NDAY,
+		gutils.FormatFloat(this.HLIMIT, "2"),
+		gutils.FormatFloat(this.LLIMIT, "2"),
+		gutils.FormatFloat(this.PEV, "2"),
+		gutils.FormatFloat(this.PBV, "2"),
+		gutils.FormatFloat(this.AMP*100, "%2"))
+}
+
 //股票日线行情
 type DayLine struct {
 	UTIME      time.Time //更新时间
@@ -190,20 +204,21 @@ func (this DayLine) GetNADeviation() float64 {
 	return (this.TCLOSE - ap) / ap
 }
 
-/*func (this DayLine) String() string {
+func (this DayLine) String() string {
 
-	return fmt.Sprintln(gutils.FormatToSecond(this.Day),
-		this.Code, this.Name, gutils.FormatFloat(this.LatestPrice, "2"),
-		this.GetQuoteChange(),
-		gutils.FormatFloat(this.AmountChange, "2"),
-		gutils.FormatFloat(this.Buy1Price, "2"),
-		gutils.FormatFloat(this.Sell1Price, "2"),
-		this.Volume, gutils.FormatFloat(this.TurnOver, "2"),
-		gutils.FormatFloat(this.NowOpenPrice, "2"),
-		gutils.FormatFloat(this.LastClosedPrice, "2"),
-		gutils.FormatFloat(this.HighestPrice, "2"),
-		gutils.FormatFloat(this.LowestPrice, "2"))
-}*/
+	return fmt.Sprintln(gutils.Format(this.UTIME, "yyyyMMdd"),
+		gutils.FormatFloat(this.TOPEN, "2"),
+		gutils.FormatFloat(this.LCLOSE, "2"),
+		gutils.FormatFloat(this.TCLOSE, "2"),
+		gutils.FormatFloat(this.CHG, "2"),
+		gutils.FormatFloat(this.PCHG*100, "%2"),
+		gutils.FormatFloat(this.TURNOVER*100, "%2"),
+		gutils.FormatFloat(this.LOW, "2"),
+		gutils.FormatFloat(this.HIGH, "2"),
+		this.VOTURNOVER, gutils.FormatFloat(this.VATURNOVER, "2"),
+		gutils.FormatFloat(this.MCAP, "2"),
+		gutils.FormatFloat(this.TCAP, "2"))
+}
 
 type DayLines struct {
 	dls    []DayLine
