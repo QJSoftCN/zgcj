@@ -82,7 +82,7 @@ func newDayLine(hqs []string) *DayLine {
 	now.TCLOSE, _ = strconv.ParseFloat(hqs[3], 64)
 	now.VATURNOVER, _ = strconv.ParseFloat(hqs[12], 64)
 	now.VOTURNOVER, _ = strconv.ParseFloat(hqs[11], 64)
-	now.UTIME, _ = gutils.Parse(hqs[0], "yyyy/MM/dd")
+	now.UTIME, _ = gutils.Parse(hqs[0], "yyyy-MM-dd")
 	return now
 }
 
@@ -96,9 +96,15 @@ func (this *Stock) ReadHistory() bool {
 
 	r := csv.NewReader(f)
 	rs, err := r.ReadAll()
-	dls := make([]DayLine, len(rs))
-	for _, dl := range rs {
-		dls = append(dls, *newDayLine(dl))
+	rl := len(rs)
+	if rl <= 1 {
+		log.Println("read history code: ", this.Code, " no history")
+		return false
+	}
+
+	dls := make([]DayLine, len(rs)-1)
+	for i, dl := range rs[1:] {
+		dls[i] = *newDayLine(dl)
 	}
 	hs := new(DayLines)
 	hs.dls = dls
@@ -194,6 +200,7 @@ func NewStock(code string) *Stock {
 type Stock struct {
 	Code   string
 	Name   string
+	state  int
 	Now    *NowLine
 	Before *DayLines
 }
@@ -213,7 +220,7 @@ func (this NowLine) String() string {
 		gutils.FormatFloat(this.LLIMIT, "2"),
 		gutils.FormatFloat(this.PEV, "2"),
 		gutils.FormatFloat(this.PBV, "2"),
-		gutils.FormatFloat(this.AMP*100, "%2"))
+		gutils.FormatFloat(this.AMP, "2%"))
 }
 
 //股票日线行情
@@ -263,17 +270,17 @@ func (this DayLine) GetNADeviation() float64 {
 func (this DayLine) String() string {
 
 	return fmt.Sprintln(gutils.Format(this.UTIME, "yyyyMMdd"),
+		gutils.FormatFloat(this.TCLOSE, "2"),
+		gutils.FormatFloat(this.HIGH, "2"),
+		gutils.FormatFloat(this.LOW, "2"),
 		gutils.FormatFloat(this.TOPEN, "2"),
 		gutils.FormatFloat(this.LCLOSE, "2"),
-		gutils.FormatFloat(this.TCLOSE, "2"),
 		gutils.FormatFloat(this.CHG, "2"),
-		gutils.FormatFloat(this.PCHG*100, "%2"),
-		gutils.FormatFloat(this.TURNOVER*100, "%2"),
-		gutils.FormatFloat(this.LOW, "2"),
-		gutils.FormatFloat(this.HIGH, "2"),
+		gutils.FormatFloat(this.PCHG, "2%"),
+		gutils.FormatFloat(this.TURNOVER, "2%"),
 		this.VOTURNOVER, gutils.FormatFloat(this.VATURNOVER, "2"),
-		gutils.FormatFloat(this.MCAP, "2"),
-		gutils.FormatFloat(this.TCAP, "2"))
+		gutils.FormatFloat(this.TCAP, "2"),
+		gutils.FormatFloat(this.MCAP, "2"))
 }
 
 type DayLines struct {

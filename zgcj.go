@@ -3,6 +3,7 @@ package main
 import (
 	"../zgcj/sd"
 	"fmt"
+	"github.com/qjsoftcn/gutils"
 )
 
 func getOneDemo() {
@@ -22,15 +23,12 @@ func load() {
 		return
 	}
 
-	for index, stock := range stocks.GetStocks() {
-		fmt.Println(index, stock)
-	}
 	code := "603993"
 	stk := stocks.Get(code)
+	fmt.Println(stk.Now)
 
-	for index, dl :=range stk.Before.Get(0, stk.Before.Size()) {
-		fmt.Println(index, dl)
-	}
+	t,_:=gutils.Parse("2017/12/21","yyyy/MM/dd")
+	fmt.Println(t)
 }
 
 func main() {

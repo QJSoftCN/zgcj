@@ -166,14 +166,19 @@ func makeRealUrl(codes []string) string {
 	return url
 }
 
+const (
+	RHQ_T = "~"
+	RHQ_Q = "\""
+)
+
 func SplitRealStr(str string) map[string][]string {
 	rhqs := strings.Split(str, R_HQ_SEP)
 
 	s_map := make(map[string][]string)
 	for _, rhq := range rhqs {
-		f := strings.Index(rhq, "\"")
+		f := strings.Index(rhq, RHQ_Q)
 		if f != -1 {
-			hq := strings.Split(rhq[f+1:len(rhq)-1], "~")
+			hq := strings.Split(rhq[f+1:len(rhq)-1], RHQ_T)
 			s_map[hq[2]] = hq[1:]
 		} else {
 			fmt.Println(rhq)
