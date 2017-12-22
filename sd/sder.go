@@ -6,15 +6,23 @@ import (
 	"sort"
 	"strconv"
 	"fmt"
+	"log"
+	"os"
+	"encoding/csv"
 )
 
 const (
 	C_Step int = 60
+	P_SH       = '6'
 )
 
 type Stocks struct {
 	stocks   []*Stock
 	stockMap map[string]*Stock
+}
+
+func (this *Stocks) Get(code string) *Stock {
+	return this.stockMap[code]
 }
 
 func (this *Stocks) GetStocks() []*Stock {
@@ -59,6 +67,45 @@ func (this *Stock) UpdateNow(hqs []string) {
 	this.Now = NewNowLine(hqs)
 }
 
+func newDayLine(hqs []string) *DayLine {
+	now := new(DayLine)
+	now.CHG, _ = strconv.ParseFloat(hqs[8], 64)
+	now.HIGH, _ = strconv.ParseFloat(hqs[4], 64)
+	now.LCLOSE, _ = strconv.ParseFloat(hqs[7], 64)
+	now.LOW, _ = strconv.ParseFloat(hqs[5], 64)
+	now.MCAP, _ = strconv.ParseFloat(hqs[14], 64)
+	now.PCHG, _ = strconv.ParseFloat(hqs[9], 64)
+	now.TCAP, _ = strconv.ParseFloat(hqs[13], 64)
+
+	now.TOPEN, _ = strconv.ParseFloat(hqs[6], 64)
+	now.TURNOVER, _ = strconv.ParseFloat(hqs[10], 64)
+	now.TCLOSE, _ = strconv.ParseFloat(hqs[3], 64)
+	now.VATURNOVER, _ = strconv.ParseFloat(hqs[12], 64)
+	now.VOTURNOVER, _ = strconv.ParseFloat(hqs[11], 64)
+	now.UTIME, _ = gutils.Parse(hqs[0], "yyyy/MM/dd")
+	return now
+}
+
+func (this *Stock) ReadHistory() bool {
+	fp := DirHisPath(this.Code)
+	f, err := os.Open(fp)
+	if err != nil {
+		log.Println("read history code: ", this.Code, " err:", err)
+		return false
+	}
+
+	r := csv.NewReader(f)
+	rs, err := r.ReadAll()
+	dls := make([]DayLine, len(rs))
+	for _, dl := range rs {
+		dls = append(dls, *newDayLine(dl))
+	}
+	hs := new(DayLines)
+	hs.dls = dls
+	this.Before = hs
+	return true
+}
+
 func NewNowLine(hqs []string) *NowLine {
 	nl := new(NowLine)
 	nl.NDAY = newNDay(hqs)
@@ -72,7 +119,7 @@ func NewNowLine(hqs []string) *NowLine {
 }
 
 func (this Stock) String() string {
-	return fmt.Sprintln(this.Code, this.Name, this.Now, this.Before)
+	return fmt.Sprintln(this.Code, this.Name, this.Now, this.Before.Size())
 }
 
 func (this *Stocks) UpdateNow() int {
@@ -98,8 +145,15 @@ func (this *Stocks) UpdateNow() int {
 }
 
 func (this *Stocks) UpdateHistory() int {
+	suc := 0
+	for _, stock := range this.stocks {
+		isSuc := stock.ReadHistory()
+		if isSuc {
+			suc++
+		}
+	}
 
-	return 0
+	return suc
 }
 
 func NewStocks() (*Stocks, error) {
@@ -122,9 +176,11 @@ func NewStocks() (*Stocks, error) {
 	}
 
 	//更新实时行情
-	stocks.UpdateNow()
+	suc := stocks.UpdateNow()
+	log.Println("update now lines success:", suc, " total:", l)
 	//更新历史行情
-	stocks.UpdateHistory()
+	suc = stocks.UpdateHistory()
+	log.Println("update history lines success:", suc, " total:", l)
 
 	return stocks, nil
 }
@@ -221,9 +277,12 @@ func (this DayLine) String() string {
 }
 
 type DayLines struct {
-	dls    []DayLine
-	dlsMap map[string]*DayLine
-	by     By
+	dls []DayLine
+	by  By
+}
+
+func (this *DayLines) Size() int {
+	return len(this.dls)
 }
 
 func (this *DayLines) Get(fromIndex, endIndex int) []DayLine {
@@ -250,5 +309,5 @@ func (this *DayLines) Sorts(bys ...By) {
 }
 
 func StockIsSh(code string) bool {
-	return code[0] == '6'
+	return code[0] == P_SH
 }

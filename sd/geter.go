@@ -175,7 +175,7 @@ func SplitRealStr(str string) map[string][]string {
 		if f != -1 {
 			hq := strings.Split(rhq[f+1:len(rhq)-1], "~")
 			s_map[hq[2]] = hq[1:]
-		}else{
+		} else {
 			fmt.Println(rhq)
 		}
 	}
@@ -187,13 +187,13 @@ func GetReal(code []string) (string, error) {
 	url := makeRealUrl(code)
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
-		log.Fatal("GetReal 1 ",err)
+		log.Println("GetReal 1 ", err)
 		return "", err
 	}
 
 	str := doc.Text()
 	if err != nil {
-		log.Fatal("GetReal 2",err)
+		log.Println("GetReal 2", err)
 		return "", err
 	}
 	str = enc.ConvertString(str)

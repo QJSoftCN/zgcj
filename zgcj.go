@@ -15,7 +15,7 @@ func getOneDemo() {
 	}
 }
 
-func main() {
+func load() {
 	stocks, err := sd.NewStocks()
 	if err != nil {
 		fmt.Println(err)
@@ -25,5 +25,16 @@ func main() {
 	for index, stock := range stocks.GetStocks() {
 		fmt.Println(index, stock)
 	}
+	code := "603993"
+	stk := stocks.Get(code)
+
+	for index, dl :=range stk.Before.Get(0, stk.Before.Size()) {
+		fmt.Println(index, dl)
+	}
+}
+
+func main() {
+	//getOneDemo()
+	load()
 
 }
