@@ -13,12 +13,15 @@ import (
 	"regexp"
 	"fmt"
 	"path/filepath"
+	"encoding/csv"
+	"strconv"
 )
 
 const (
-	His_Url     = "http://quotes.money.163.com/service/chddata.html?code=${code}&start=${start}&end=${end}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP"
-	Stock_List  = "http://quote.eastmoney.com/stocklist.html"
-	Real_HQ_Url = "http://qt.gtimg.cn/q=${code}"
+	His_Url      = "http://quotes.money.163.com/service/chddata.html?code=${code}&start=${start}&end=${end}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP"
+	Stock_List   = "http://quote.eastmoney.com/stocklist.html"
+	Real_HQ_Url  = "http://qt.gtimg.cn/q=${code}"
+	Real_SHQ_Url = "http://qt.gtimg.cn/q=s_${code}"
 
 	Root_Dir      = "zgcj"
 	DLS_DIR       = "dls"
@@ -53,7 +56,36 @@ func GetStockCodes() ([]string, error) {
 			codes = append(codes, code)
 		}
 	})
+
 	return codes, nil
+}
+
+func ValidCodes(codes []string) []string {
+	suc := 0
+	i := 0
+	size := len(codes)
+	nCodes := make([]string, 0)
+	for {
+		str, _ := GetReal(Real_SHQ_Url, codes[i:i+C_Step])
+		m := SplitRealStr(str)
+		suc += len(m)
+		for key, val := range m {
+			tcap, _ := strconv.ParseFloat(val[len(m[key])-1], 64)
+			if tcap != 0 {
+				nCodes = append(nCodes, key)
+			} else {
+				fmt.Println(key)
+			}
+		}
+
+		if i+C_Step >= size {
+			break
+		} else {
+			i += C_Step
+		}
+	}
+
+	return nCodes
 }
 
 func getMarketCodeForWy(code string) string {
@@ -86,6 +118,10 @@ func makeUrl(code, sd, ed string) string {
 	return url
 }
 
+func DirCodesPath() string {
+	return filepath.Join(Root_Dir, DLS_DIR, "codes."+HF_EXT)
+}
+
 func DirHisPath(code string) string {
 	return filepath.Join(Root_Dir, DLS_DIR, code+"."+HF_EXT)
 }
@@ -105,6 +141,7 @@ func backupCode(code, sd, ed string) bool {
 
 	bf := DirHisPath(code)
 	f, err := os.Create(bf)
+	defer f.Close()
 	if err != nil {
 		log.Fatal(code, err)
 		return false
@@ -119,6 +156,34 @@ func backupCode(code, sd, ed string) bool {
 	bnum = bnum / 1024
 	log.Println(code, f.Name(), bnum, "KB")
 	return true
+}
+
+func BackupCodes() {
+	codes, err := GetStockCodes()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	//验证编码
+	codes = ValidCodes(codes)
+
+	fp := DirCodesPath()
+	f, err := os.Create(fp)
+	defer f.Close()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	cw := csv.NewWriter(f)
+	cw.Write(codes)
+}
+
+func Backup(days int) {
+	//backup codes
+	BackupCodes()
+	//backup historys
+	BackupDays(days)
 }
 
 func BackupDays(days int) bool {
@@ -153,7 +218,7 @@ func BackupDays(days int) bool {
 	}
 }
 
-func makeRealUrl(codes []string) string {
+func makeRealUrl(burl string, codes []string) string {
 	str := ""
 	for _, code := range codes {
 		if len(code) == 0 {
@@ -162,7 +227,7 @@ func makeRealUrl(codes []string) string {
 		str += getMarketCodeForTx(code) + code + ","
 	}
 	str = str[:len(str)-1]
-	url := strings.Replace(Real_HQ_Url, Var_Code, str, 1)
+	url := strings.Replace(burl, Var_Code, str, 1)
 	return url
 }
 
@@ -180,16 +245,14 @@ func SplitRealStr(str string) map[string][]string {
 		if f != -1 {
 			hq := strings.Split(rhq[f+1:len(rhq)-1], RHQ_T)
 			s_map[hq[2]] = hq[1:]
-		} else {
-			fmt.Println(rhq)
 		}
 	}
 
 	return s_map
 }
 
-func GetReal(code []string) (string, error) {
-	url := makeRealUrl(code)
+func GetReal(burl string, code []string) (string, error) {
+	url := makeRealUrl(burl, code)
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
 		log.Println("GetReal 1 ", err)

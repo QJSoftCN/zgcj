@@ -9,7 +9,7 @@ import (
 func getOneDemo() {
 	codes := make([]string, 1)
 	codes[0] = "002129"
-	str, _ := sd.GetReal(codes[:1])
+	str, _ := sd.GetReal(sd.Real_HQ_Url,codes[:1])
 	m := sd.SplitRealStr(str)
 	for index, val := range m[codes[0]] {
 		fmt.Println(index, "=", val)
@@ -31,8 +31,12 @@ func load() {
 	fmt.Println(t)
 }
 
+func b(){
+	sd.BackupCodes()
+}
+
 func main() {
 	//getOneDemo()
-	load()
-
+	//load()
+	b()
 }

@@ -134,7 +134,7 @@ func (this *Stocks) UpdateNow() int {
 	size := len(this.stocks)
 	for {
 		codes := this.getCodes(i, i+C_Step)
-		str, _ := GetReal(codes)
+		str, _ := GetReal(Real_HQ_Url,codes)
 		m := SplitRealStr(str)
 		suc += len(m)
 		for key, val := range m {
@@ -162,9 +162,23 @@ func (this *Stocks) UpdateHistory() int {
 	return suc
 }
 
+func ReadCodes() ([]string, error) {
+	fp := DirCodesPath()
+	f, err := os.Open(fp)
+	defer f.Close()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	cr := csv.NewReader(f)
+	codes, err := cr.Read()
+	return codes, err
+}
+
 func NewStocks() (*Stocks, error) {
 	//首先读取所有Code
-	codes, err := GetStockCodes()
+	codes, err := ReadCodes()
 	if err != nil {
 		return nil, err
 	}
