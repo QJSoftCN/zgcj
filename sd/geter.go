@@ -18,10 +18,9 @@ import (
 )
 
 const (
-	His_Url      = "http://quotes.money.163.com/service/chddata.html?code=${code}&start=${start}&end=${end}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP"
-	Stock_List   = "http://quote.eastmoney.com/stocklist.html"
-	Real_HQ_Url  = "http://qt.gtimg.cn/q=${code}"
-	Real_SHQ_Url = "http://qt.gtimg.cn/q=s_${code}"
+	His_Url     = "http://quotes.money.163.com/service/chddata.html?code=${code}&start=${start}&end=${end}&fields=TCLOSE;HIGH;LOW;TOPEN;LCLOSE;CHG;PCHG;TURNOVER;VOTURNOVER;VATURNOVER;TCAP;MCAP"
+	Stock_List  = "http://quote.eastmoney.com/stocklist.html"
+	Real_HQ_Url = "http://qt.gtimg.cn/q=${code}"
 
 	Root_Dir      = "zgcj"
 	DLS_DIR       = "dls"
@@ -34,7 +33,7 @@ const (
 	Code_Regx_Exp = "(6|0|3)[\\d]{5}"
 
 	ENC_CODE = "gbk"
-	R_HQ_SEP = ";"
+	R_HQ_SEP = "\n"
 )
 
 var enc = mahonia.NewDecoder(ENC_CODE)
@@ -66,15 +65,13 @@ func ValidCodes(codes []string) []string {
 	size := len(codes)
 	nCodes := make([]string, 0)
 	for {
-		str, _ := GetReal(Real_SHQ_Url, codes[i:i+C_Step])
+		str, _ := GetReal(true, codes[i:i+C_Step])
 		m := SplitRealStr(str)
 		suc += len(m)
 		for key, val := range m {
-			tcap, _ := strconv.ParseFloat(val[len(m[key])-1], 64)
+			tcap, _ := strconv.ParseFloat(val[len(val)-1], 64)
 			if tcap != 0 {
 				nCodes = append(nCodes, key)
-			} else {
-				fmt.Println(key)
 			}
 		}
 
@@ -177,6 +174,7 @@ func BackupCodes() {
 
 	cw := csv.NewWriter(f)
 	cw.Write(codes)
+	log.Println("backup codes size:", len(codes))
 }
 
 func Backup(days int) {
@@ -190,7 +188,7 @@ func BackupDays(days int) bool {
 	now := time.Now()
 	start := now.Add(-40 * 24 * time.Hour)
 
-	codes, err := GetStockCodes()
+	codes, err := ReadCodes()
 	if err != nil {
 		log.Fatal("read codes ", err)
 		return false
@@ -218,16 +216,21 @@ func BackupDays(days int) bool {
 	}
 }
 
-func makeRealUrl(burl string, codes []string) string {
+func makeRealUrl(isS bool, codes []string) string {
 	str := ""
+	p := ""
+	if isS {
+		p = "s_"
+	}
 	for _, code := range codes {
 		if len(code) == 0 {
 			continue
 		}
-		str += getMarketCodeForTx(code) + code + ","
+		c := p + getMarketCodeForTx(code) + code
+		str += strings.TrimSpace(c) + ","
 	}
 	str = str[:len(str)-1]
-	url := strings.Replace(burl, Var_Code, str, 1)
+	url := strings.Replace(Real_HQ_Url, Var_Code, str, 1)
 	return url
 }
 
@@ -243,7 +246,7 @@ func SplitRealStr(str string) map[string][]string {
 	for _, rhq := range rhqs {
 		f := strings.Index(rhq, RHQ_Q)
 		if f != -1 {
-			hq := strings.Split(rhq[f+1:len(rhq)-1], RHQ_T)
+			hq := strings.Split(rhq[f+1:len(rhq)-2], RHQ_T)
 			s_map[hq[2]] = hq[1:]
 		}
 	}
@@ -251,8 +254,8 @@ func SplitRealStr(str string) map[string][]string {
 	return s_map
 }
 
-func GetReal(burl string, code []string) (string, error) {
-	url := makeRealUrl(burl, code)
+func GetReal(isS bool, code []string) (string, error) {
+	url := makeRealUrl(isS, code)
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
 		log.Println("GetReal 1 ", err)

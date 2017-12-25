@@ -134,7 +134,7 @@ func (this *Stocks) UpdateNow() int {
 	size := len(this.stocks)
 	for {
 		codes := this.getCodes(i, i+C_Step)
-		str, _ := GetReal(Real_HQ_Url,codes)
+		str, _ := GetReal(false,codes)
 		m := SplitRealStr(str)
 		suc += len(m)
 		for key, val := range m {
