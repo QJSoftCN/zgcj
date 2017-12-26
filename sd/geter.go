@@ -55,7 +55,7 @@ func GetStockCodes() ([]string, error) {
 			codes = append(codes, code)
 		}
 	})
-
+	log.Println("get codes size:", len(codes))
 	return codes, nil
 }
 
@@ -70,7 +70,7 @@ func ValidCodes(codes []string) []string {
 		suc += len(m)
 		for key, val := range m {
 			tcap, _ := strconv.ParseFloat(val[len(val)-1], 64)
-			if tcap != 0 {
+			if tcap > 0 {
 				nCodes = append(nCodes, key)
 			}
 		}
@@ -82,6 +82,7 @@ func ValidCodes(codes []string) []string {
 		}
 	}
 
+	log.Println("valid codes size:", len(nCodes))
 	return nCodes
 }
 
@@ -132,7 +133,7 @@ func backupCode(code, sd, ed string) bool {
 	url := makeUrl(mc+code, sd, ed)
 	res, err := http.Get(url)
 	if err != nil {
-		log.Fatal(code, err)
+		//log.Fatal(code, err)
 		return false
 	}
 
@@ -140,18 +141,18 @@ func backupCode(code, sd, ed string) bool {
 	f, err := os.Create(bf)
 	defer f.Close()
 	if err != nil {
-		log.Fatal(code, err)
+		//log.Fatal(code, err)
 		return false
 	}
 
 	bnum, err := io.Copy(f, res.Body)
 	if err != nil {
-		log.Fatal(code, err)
+		//log.Fatal(code, err)
 		return false
 	}
 
 	bnum = bnum / 1024
-	log.Println(code, f.Name(), bnum, "KB")
+	//log.Println(code, f.Name(), bnum, "KB")
 	return true
 }
 
