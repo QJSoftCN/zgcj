@@ -186,7 +186,7 @@ func Backup(days int) {
 
 func BackupDays(days int) bool {
 	now := time.Now()
-	start := now.Add(-40 * 24 * time.Hour)
+	start := now.Add(-time.Duration(days) * 24 * time.Hour)
 
 	codes, err := ReadCodes()
 	if err != nil {
