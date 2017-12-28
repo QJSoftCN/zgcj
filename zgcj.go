@@ -33,11 +33,8 @@ func load() {
 
 func b(){
 	sd.Backup(400)
-
 }
 
 func main() {
-	//getOneDemo()
-	//load()
 	b()
 }

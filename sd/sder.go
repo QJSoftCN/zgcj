@@ -9,6 +9,8 @@ import (
 	"log"
 	"os"
 	"encoding/csv"
+	"io/ioutil"
+	"strings"
 )
 
 const (
@@ -171,9 +173,14 @@ func ReadCodes() ([]string, error) {
 		return nil, err
 	}
 
-	cr := csv.NewReader(f)
-	codes, err := cr.Read()
-	return codes, err
+	bs,err:=ioutil.ReadAll(f)
+	if err!=nil{
+		log.Println(err)
+		return nil, err
+	}
+	str:=string(bs)
+	codes:=strings.Split(str," ")
+	return codes, nil
 }
 
 func NewStocks() (*Stocks, error) {

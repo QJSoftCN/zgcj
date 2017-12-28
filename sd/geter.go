@@ -11,10 +11,9 @@ import (
 	"github.com/puerkitobio/goquery"
 	"github.com/axgle/mahonia"
 	"regexp"
-	"fmt"
 	"path/filepath"
-	"encoding/csv"
 	"strconv"
+	"fmt"
 )
 
 const (
@@ -117,7 +116,7 @@ func makeUrl(code, sd, ed string) string {
 }
 
 func DirCodesPath() string {
-	return filepath.Join(Root_Dir, DLS_DIR, "codes."+HF_EXT)
+	return filepath.Join(Root_Dir, DLS_DIR, "codes.t")
 }
 
 func DirHisPath(code string) string {
@@ -173,8 +172,9 @@ func BackupCodes() {
 		return
 	}
 
-	cw := csv.NewWriter(f)
-	cw.Write(codes)
+	str := fmt.Sprint(codes)
+	f.WriteString(str[1:len(str)-1])
+
 	log.Println("backup codes size:", len(codes))
 }
 
@@ -198,23 +198,11 @@ func BackupDays(days int) bool {
 	startDay := gutils.Format(start, "yyyyMMdd")
 	endDay := gutils.Format(now, "yyyyMMdd")
 
-	failedCodes := make([]string, 0)
-
-	for index, code := range codes {
-		isSuc := backupCode(code, startDay, endDay)
-		if isSuc {
-			fmt.Println(index, code, " backup success")
-		} else {
-			failedCodes = append(failedCodes, code)
-		}
+	for _, code := range codes {
+		backupCode(code, startDay, endDay)
 	}
 
-	if len(failedCodes) == 0 {
-		return true
-	} else {
-		log.Println(failedCodes)
-		return false
-	}
+	return true
 }
 
 func makeRealUrl(isS bool, codes []string) string {
