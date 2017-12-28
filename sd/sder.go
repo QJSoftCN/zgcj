@@ -136,7 +136,7 @@ func (this *Stocks) UpdateNow() int {
 	size := len(this.stocks)
 	for {
 		codes := this.getCodes(i, i+C_Step)
-		str, _ := GetReal(false,codes)
+		str, _ := GetReal(false, codes)
 		m := SplitRealStr(str)
 		suc += len(m)
 		for key, val := range m {
@@ -173,13 +173,13 @@ func ReadCodes() ([]string, error) {
 		return nil, err
 	}
 
-	bs,err:=ioutil.ReadAll(f)
-	if err!=nil{
+	bs, err := ioutil.ReadAll(f)
+	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	str:=string(bs)
-	codes:=strings.Split(str," ")
+	str := string(bs)
+	codes := strings.Split(str, " ")
 	return codes, nil
 }
 
@@ -307,6 +307,42 @@ func (this DayLine) String() string {
 type DayLines struct {
 	dls []DayLine
 	by  By
+}
+
+func (this *DayLines) get(days int) []DayLine {
+	var ds []DayLine
+	switch {
+	case days == 0:
+		ds = this.dls
+	case days < len(this.dls):
+		ds = this.dls[:days]
+	default:
+		ds = this.dls
+	}
+
+	return ds
+}
+
+func (this *DayLines) GetLowestPrice(days int) float64 {
+	ds := this.get(days)
+	lowest := ds[0].LOW
+	for _, dl := range ds[1:] {
+		if dl.LOW < lowest {
+			lowest = dl.LOW
+		}
+	}
+	return lowest
+}
+
+func (this *DayLines) GetHighestPrice(days int)float64 {
+	ds := this.get(days)
+	highest := ds[0].HIGH
+	for _, dl := range ds[1:] {
+		if dl.HIGH >highest {
+			highest = dl.HIGH
+		}
+	}
+	return highest
 }
 
 func (this *DayLines) Size() int {
