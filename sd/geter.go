@@ -198,10 +198,15 @@ func BackupDays(days int) bool {
 	startDay := gutils.Format(start, "yyyyMMdd")
 	endDay := gutils.Format(now, "yyyyMMdd")
 
+	size := 0
 	for _, code := range codes {
-		backupCode(code, startDay, endDay)
+		isSuc := backupCode(code, startDay, endDay)
+		if isSuc {
+			size++
+		}
 	}
 
+	log.Println("backup days ", days, " success,codes:", size)
 	return true
 }
 

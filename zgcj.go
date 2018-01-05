@@ -9,7 +9,7 @@ import (
 func getOneDemo() {
 	codes := make([]string, 1)
 	codes[0] = "002129"
-	str, _ := sd.GetReal(false,codes[:1])
+	str, _ := sd.GetReal(false, codes[:1])
 	m := sd.SplitRealStr(str)
 	for index, val := range m[codes[0]] {
 		fmt.Println(index, "=", val)
@@ -27,11 +27,11 @@ func load() {
 	stk := stocks.Get(code)
 	fmt.Println(stk.Now)
 
-	t,_:=gutils.Parse("2017/12/21","yyyy/MM/dd")
+	t, _ := gutils.Parse("2017/12/21", "yyyy/MM/dd")
 	fmt.Println(t)
 }
 
-func b(){
+func b() {
 	sd.Backup(400)
 }
 
