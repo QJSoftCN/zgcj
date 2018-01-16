@@ -16,6 +16,16 @@ func getOneDemo() {
 	}
 }
 
+func sl(){
+	stocks, err := sd.NewStocks()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	stocks.DropMost(100)
+}
+
 func load() {
 	stocks, err := sd.NewStocks()
 	if err != nil {
@@ -36,5 +46,6 @@ func b() {
 }
 
 func main() {
-	b()
+	//b()
+	sl()
 }

@@ -1,48 +1,73 @@
 package sd
 
-type SPrizer struct {
-	Days  int
-	High  float64
-	Low   float64
-	Avg   float64
-	State int
-}
+import (
+	"fmt"
+	"github.com/qjsoftcn/gutils"
+)
 
-type SPrizers struct {
+func (this *DayLines) FindLowestDay(days int) (*DayLine,int) {
+	size:=len(this.dls)
+	if size== 0 {
+		return nil,0
+	}
+
+	if days>=size{days=size}
+
+	ldl := &this.dls[0]
+	day:=0
+	for index, dl := range this.dls {
+		if index >= days {
+			break
+		}
+
+		if dl.LOW < ldl.LOW {
+			ldl = &this.dls[index]
+			day=index+1
+		}
+	}
+
+	return ldl,day
+}
+type StockLowest struct {
 	Code string
-	D5   *SPrizer
-	D10  *SPrizer
-	D20  *SPrizer
-	D30  *SPrizer
-	D60  *SPrizer
-	D400 *SPrizer
+	DevAmp float64
+	DevDays int
+	Low *DayLine
 }
 
-type SVolumner struct {
-	Days  int
-	High int64
-	Low   int64
-	Avg   float64
-	State int
+type StockLowests []StockLowest
+
+func (c StockLowests) Len() int {
+	return len(c)
+}
+func (c StockLowests) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+func (c StockLowests) Less(i, j int) bool {
+	return c[i].DevAmp < c[j].DevAmp
+}
+//跌幅最大
+func (this *Stocks) DropMost(days int) {
+
+	sls:=make(StockLowests,0)
+	for _, stk := range this.stocks {
+		ldl,day := stk.Before.FindLowestDay(days)
+		if ldl!=nil {
+			pc := (stk.Now.NDAY.TCLOSE - ldl.TCLOSE) / ldl.TCLOSE
+			sl := StockLowest{stk.Code, pc, day,ldl}
+			sls = append(sls, sl)
+		}
+	}
+
+	for index,sl:=range sls{
+		stk:=this.Get(sl.Code)
+		if index>20{
+			break
+		}
+		fmt.Println(index,stk.Code,stk.Name,stk.Now.NDAY.TCLOSE,gutils.FormatFloat(sl.DevAmp,"%.2") ,sl.DevDays,sl.Low)
+	}
+
+
 }
 
-type SVolumners struct {
-	Code string
-	V3 *SVolumner
-	V5 *SVolumner
-	V10 *SVolumner
-	V15 *SVolumner
-}
-
-func(this Stock)Prize(){
-
-}
-
-var allSPrizers=make(map[string]SPrizers)
-//build all prizers
-//at this prizes to analysis prize
-func (this *Stocks) Prize(){
-
-
-}
 

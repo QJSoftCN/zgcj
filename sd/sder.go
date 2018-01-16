@@ -224,7 +224,6 @@ type Stock struct {
 	state  int
 	Now    *NowLine
 	Before *DayLines
-	Prizer *SPrizer
 }
 
 type NowLine struct {
