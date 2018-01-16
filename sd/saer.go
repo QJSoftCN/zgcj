@@ -52,8 +52,8 @@ func (this *Stocks) DropMost(days int) {
 	sls:=make(StockLowests,0)
 	for _, stk := range this.stocks {
 		ldl,day := stk.Before.FindLowestDay(days)
-		if ldl!=nil {
-			pc := (stk.Now.NDAY.TCLOSE - ldl.TCLOSE) / ldl.TCLOSE
+		if ldl!=nil&&ldl.LOW!=0 {
+			pc := (stk.Now.NDAY.TCLOSE - ldl.LOW) / ldl.LOW
 			sl := StockLowest{stk.Code, pc, day,ldl}
 			sls = append(sls, sl)
 		}
@@ -64,7 +64,7 @@ func (this *Stocks) DropMost(days int) {
 		if index>20{
 			break
 		}
-		fmt.Println(index,stk.Code,stk.Name,stk.Now.NDAY.TCLOSE,gutils.FormatFloat(sl.DevAmp,"%.2") ,sl.DevDays,sl.Low)
+		fmt.Println(index,stk.Code,stk.Name,stk.Now.NDAY.TCLOSE,gutils.FormatFloat(sl.DevAmp,"%.2") ,sl.DevDays,sl.Low.LOW,gutils.Format(sl.Low.UTIME,"yyyyMMdd"))
 	}
 
 
