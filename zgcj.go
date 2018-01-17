@@ -23,7 +23,7 @@ func sl(){
 		return
 	}
 
-	stocks.DropMost(100)
+	stocks.DropMost(60)
 }
 
 func load() {

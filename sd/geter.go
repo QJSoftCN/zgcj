@@ -23,6 +23,7 @@ const (
 
 	Root_Dir      = "zgcj"
 	DLS_DIR       = "dls"
+	OUT_DIR="output"
 	HF_EXT        = "csv"
 	Market_SH     = "sh"
 	Market_SZ     = "sz"
@@ -267,4 +268,6 @@ func GetReal(isS bool, code []string) (string, error) {
 
 func init() {
 	gutils.Dir(filepath.Join(Root_Dir, DLS_DIR))
+	gutils.Dir(filepath.Join(Root_Dir, OUT_DIR))
+
 }
