@@ -58,6 +58,14 @@ func (this *Stocks) DropMost(days int) {
 
 	sls := make(StockLowests, 0)
 	for _, stk := range this.stocks {
+
+		if stk.Before==nil||stk.Now==nil{
+			continue
+		}
+		if stk.Now.NDAY.TCLOSE==0{
+			continue
+		}
+
 		ldl, day := stk.Before.FindLowestDay(days)
 		if ldl != nil && ldl.LOW != 0 {
 			pc := (stk.Now.NDAY.TCLOSE - ldl.LOW) / ldl.LOW
